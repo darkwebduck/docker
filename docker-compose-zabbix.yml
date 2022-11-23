@@ -1,0 +1,60 @@
+version: '3.9'
+services:
+  zabbix-mysql:
+    image: mysql:8.0-oracle
+    restart: always
+    container_name: ct_zabbix_mysql
+    networks:
+      - net
+    ports:
+      - "3306:3306"
+    volumes:
+      - /volume1/docker/zabbix/mysql:/var/lib/mysql
+    command:
+      - mysqld
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_bin
+      - --skip-character-set-client-handshake
+      - --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATSABASE: "zabbix_db"
+      MYSQL_USER: "zabbix_user"
+      MYSQL_PASSWORD: "zabbix_secret_password"
+      MYSQL_ROOT_PASSWORD: "zabbix_root_password"
+  zabbix-gateway:
+    image: zabbix/zabbix-java-gateway:latest
+    restart: always
+    container_name: ct_zabbix_gateway
+    networks:
+      - net
+  zabbix-server:
+    image: zabbix/zabbix-server-mysql:latest
+    restart: always
+    container_name: ct_zabbix_server
+    networks:
+      - net
+    ports:
+      - "10051:10051"
+    volumes:
+      - /volume1/docker/zabbix/mysql:/var/lib/mysql
+      - /volume1/docker/zabbix/alertscripts:/usr/lib/zabbix/alertscripts
+      - /volume1/docker/zabbix/externalscripts:/usr/lib/zabbix/externalscripts
+      - /volume1/docker/zabbix/dbscripts:/var/lib/zabbix/dbscripts
+      - /volume1/docker/zabbix/export:/var/lib/zabbix/export
+      - /volume1/docker/zabbix/modules:/var/lib/zabbix/modules
+      - /volume1/docker/zabbix/enc:/var/lib/zabbix/enc
+      - /volume1/docker/zabbix/ssh_keys:/var/lib/zabbix/ssh_keys
+      - /volume1/docker/zabbix/mibs:/var/lib/zabbix/mibs
+    environment:
+      DB_SERVER_HOST: "zabbix-mysql"
+      DB_SERVER_PORT: "3306"
+      MYSQL_DATSABASE: "zabbix_db"
+      MYSQL_USER: "zabbix_user"
+      MYSQL_PASSWORD: "zabbix_secret_password"
+      MYSQL_ROOT_PASSWORD: "zabbix_root_password"
+      ZBX_JAVAGATEWAY: "ct_zabbix_gateway"
+#      DEBUG_MODE: "true"
+
+networks:
+  net:
+    driver: bridge
