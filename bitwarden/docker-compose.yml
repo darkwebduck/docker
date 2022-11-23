@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  bitwarden:
+    image: bitwardenrs/server:latest
+    restart: always
+    container_name: ct_bitwarden_server
+    ports:
+      - 8008:80
+    networks:
+      - net
+    volumes:
+      - /volume1/docker/bitwarden:/data
+    environment:
+      WEBSOCKET_ENABLED: 'true' # Required to use websockets
+      SIGNUPS_ALLOWED: 'true'   # set to false to disable signups
+
+networks:
+  net:
+    driver: bridge
